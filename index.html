@@ -76,8 +76,8 @@
         }
         .touch-joystick-thumb {
             position: absolute;
-            top: 50px;
-            left: 50px;
+            top: 50%;
+            left: 50%;
             width: 50px;
             height: 50px;
             background-color: rgba(255, 255, 255, 0.5);
@@ -116,6 +116,7 @@
         <h1>Pink Deer Wanderer</h1>
         <p><strong>Keyboard:</strong> Arrow Keys to move, Spacebar to jump.</p>
         <p><strong>Controller:</strong> Left stick to move, Right stick for camera, 'A' to jump, 'B' for a surprise!</p>
+        <p><strong>Touch:</strong> Left stick to move, Right side drag for camera.</p>
         <p>Find and rescue all your deer friends!</p>
     </div>
 
@@ -161,6 +162,7 @@
         let gamepad = null;
         const touchState = {
             joystick: { active: false, startX: 0, startY: 0, deltaX: 0, deltaY: 0, angle: 0, distance: 0 },
+            camera: { active: false, touchId: null, lastX: 0, lastY: 0 },
             jumpPressed: false,
             fartPressed: false,
             canJump: true,
@@ -171,6 +173,7 @@
         let cameraPitch = 0.5;
         const cameraDistance = 10.0;
         const gamepadTurnSpeed = 2.0;
+        const touchCameraSensitivity = 0.005;
 
         // Animation & Physics State
         let isWalking = false;
@@ -270,6 +273,12 @@
                 
                 fartButton.addEventListener('touchstart', (e) => { e.preventDefault(); touchState.fartPressed = true; }, { passive: false });
                 fartButton.addEventListener('touchend', (e) => { e.preventDefault(); touchState.fartPressed = false; }, { passive: false });
+            
+                // Listen for camera touches on the whole window
+                window.addEventListener('touchstart', handleCameraTouchStart, { passive: false });
+                window.addEventListener('touchmove', handleCameraTouchMove, { passive: false });
+                window.addEventListener('touchend', handleCameraTouchEnd, { passive: false });
+                window.addEventListener('touchcancel', handleCameraTouchEnd, { passive: false });
             }
         }
         
@@ -294,9 +303,11 @@
             e.preventDefault();
             touchState.joystick.active = false;
             const thumb = document.getElementById('joystick-thumb');
-            thumb.style.transform = `translate(0px, 0px)`;
+            thumb.style.transform = `translate(-50%, -50%)`;
             thumb.style.left = `50%`;
             thumb.style.top = `50%`;
+            touchState.joystick.deltaX = 0;
+            touchState.joystick.deltaY = 0;
         }
         
         function updateJoystick(clientX, clientY) {
@@ -318,6 +329,58 @@
             
             touchState.joystick.deltaX = Math.cos(angle) * (distance / maxDistance);
             touchState.joystick.deltaY = Math.sin(angle) * (distance / maxDistance);
+        }
+
+        function handleCameraTouchStart(e) {
+            // Ignore if a camera touch is already active
+            if (touchState.camera.active) return;
+            
+            for(let touch of e.changedTouches) {
+                // Ignore touches that start on a UI element
+                if (touch.target.closest('#touch-controls')) continue;
+                
+                // Only activate for touches on the right half of the screen
+                if (touch.clientX > window.innerWidth / 2) {
+                    e.preventDefault();
+                    touchState.camera.active = true;
+                    touchState.camera.touchId = touch.identifier;
+                    touchState.camera.lastX = touch.clientX;
+                    touchState.camera.lastY = touch.clientY;
+                    break; // Only track one camera touch at a time
+                }
+            }
+        }
+
+        function handleCameraTouchMove(e) {
+            if (!touchState.camera.active) return;
+            
+            for(let touch of e.changedTouches) {
+                if (touch.identifier === touchState.camera.touchId) {
+                    e.preventDefault();
+                    const deltaX = touch.clientX - touchState.camera.lastX;
+                    const deltaY = touch.clientY - touchState.camera.lastY;
+
+                    cameraYaw -= deltaX * touchCameraSensitivity;
+                    cameraPitch -= deltaY * touchCameraSensitivity;
+                    cameraPitch = Math.max(0.1, Math.min(Math.PI / 2.5, cameraPitch)); // Clamp pitch
+
+                    touchState.camera.lastX = touch.clientX;
+                    touchState.camera.lastY = touch.clientY;
+                    break;
+                }
+            }
+        }
+
+        function handleCameraTouchEnd(e) {
+            if (!touchState.camera.active) return;
+            for(let touch of e.changedTouches) {
+                if (touch.identifier === touchState.camera.touchId) {
+                    e.preventDefault();
+                    touchState.camera.active = false;
+                    touchState.camera.touchId = null;
+                    break;
+                }
+            }
         }
 
 
@@ -717,7 +780,9 @@
         }
 
         function updateCamera() {
-            if (!gamepad) {
+            const isOrbiting = gamepad || touchState.camera.active;
+
+            if (!isOrbiting) {
                 const offset = new THREE.Vector3(0, 5, 10);
                 offset.applyQuaternion(deer.quaternion);
                 const cameraPosition = new THREE.Vector3().copy(deer.position).add(offset);

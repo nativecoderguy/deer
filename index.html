@@ -25,6 +25,12 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             max-width: 300px;
             z-index: 10;
+            opacity: 1;
+            transition: opacity 1.5s ease-out;
+        }
+        #info-panel.fade-out {
+            opacity: 0;
+            pointer-events: none;
         }
         h1 {
             margin: 0 0 10px 0;
@@ -235,6 +241,11 @@
 
             // Event Listeners
             setupEventListeners();
+
+            // Fade out instructions
+            setTimeout(() => {
+                document.getElementById('info-panel').classList.add('fade-out');
+            }, 7000);
 
             animate();
         }
@@ -868,4 +879,5 @@
     </script>
 </body>
 </html>
+
 

@@ -153,7 +153,7 @@
         let allFriendsRescued = false;
 
         const deerSpeed = 5.0;
-        const deerTurnSpeed = Math.PI / 2; 
+        const deerTurnSpeed = Math.PI / 2;
         const friendDeerFollowSpeed = 3.0;
         const friendDeerStopDistance = 2.5;
 
@@ -181,7 +181,7 @@
         let isGrounded = true;
         const gravity = 20.0;
         const jumpStrength = 12.0;
-        const doubleJumpStrength = 11.0; 
+        const doubleJumpStrength = 11.0;
         let jumpsLeft = 2;
         let canJump = true;
         let gamepadCanJump = true;
@@ -206,7 +206,7 @@
             // Camera
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.set(0, 5, 8);
-            
+
             // Lighting
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
             scene.add(ambientLight);
@@ -225,7 +225,7 @@
             // Create objects
             deer = createDeer(0xffc0cb); // Pink deer
             scene.add(deer);
-            
+
             ground = createGround();
             scene.add(ground);
 
@@ -235,10 +235,10 @@
 
             // Event Listeners
             setupEventListeners();
-            
+
             animate();
         }
-        
+
         function setupEventListeners() {
             window.addEventListener('keydown', (e) => keyboard[e.code] = true);
             window.addEventListener('keyup', (e) => {
@@ -254,7 +254,7 @@
                 gamepad = null;
             });
             window.addEventListener('resize', onWindowResize, false);
-            
+
             // Touch Listeners
             const isTouchDevice = 'ontouchstart' in window;
             if (isTouchDevice) {
@@ -267,13 +267,13 @@
                 joystickArea.addEventListener('touchmove', handleJoystickMove, { passive: false });
                 joystickArea.addEventListener('touchend', handleJoystickEnd, { passive: false });
                 joystickArea.addEventListener('touchcancel', handleJoystickEnd, { passive: false });
-                
+
                 jumpButton.addEventListener('touchstart', (e) => { e.preventDefault(); touchState.jumpPressed = true; }, { passive: false });
                 jumpButton.addEventListener('touchend', (e) => { e.preventDefault(); touchState.jumpPressed = false; touchState.canJump = true; }, { passive: false });
-                
+
                 fartButton.addEventListener('touchstart', (e) => { e.preventDefault(); touchState.fartPressed = true; }, { passive: false });
                 fartButton.addEventListener('touchend', (e) => { e.preventDefault(); touchState.fartPressed = false; }, { passive: false });
-            
+
                 // Listen for camera touches on the whole window
                 window.addEventListener('touchstart', handleCameraTouchStart, { passive: false });
                 window.addEventListener('touchmove', handleCameraTouchMove, { passive: false });
@@ -281,7 +281,7 @@
                 window.addEventListener('touchcancel', handleCameraTouchEnd, { passive: false });
             }
         }
-        
+
         function handleJoystickStart(e) {
             e.preventDefault();
             const touch = e.changedTouches[0];
@@ -309,24 +309,24 @@
             touchState.joystick.deltaX = 0;
             touchState.joystick.deltaY = 0;
         }
-        
+
         function updateJoystick(clientX, clientY) {
             const joystickArea = document.getElementById('joystick-area');
             const thumb = document.getElementById('joystick-thumb');
             const rect = joystickArea.getBoundingClientRect();
             const centerX = rect.left + rect.width / 2;
             const centerY = rect.top + rect.height / 2;
-            
+
             let deltaX = clientX - centerX;
             let deltaY = clientY - centerY;
-            
+
             const maxDistance = rect.width / 2 - thumb.clientWidth / 2;
             const distance = Math.min(maxDistance, Math.sqrt(deltaX * deltaX + deltaY * deltaY));
             const angle = Math.atan2(deltaY, deltaX);
 
             thumb.style.left = `${centerX + Math.cos(angle) * distance - rect.left}px`;
             thumb.style.top = `${centerY + Math.sin(angle) * distance - rect.top}px`;
-            
+
             touchState.joystick.deltaX = Math.cos(angle) * (distance / maxDistance);
             touchState.joystick.deltaY = Math.sin(angle) * (distance / maxDistance);
         }
@@ -334,11 +334,11 @@
         function handleCameraTouchStart(e) {
             // Ignore if a camera touch is already active
             if (touchState.camera.active) return;
-            
+
             for(let touch of e.changedTouches) {
                 // Ignore touches that start on a UI element
                 if (touch.target.closest('#touch-controls')) continue;
-                
+
                 // Only activate for touches on the right half of the screen
                 if (touch.clientX > window.innerWidth / 2) {
                     e.preventDefault();
@@ -353,7 +353,7 @@
 
         function handleCameraTouchMove(e) {
             if (!touchState.camera.active) return;
-            
+
             for(let touch of e.changedTouches) {
                 if (touch.identifier === touchState.camera.touchId) {
                     e.preventDefault();
@@ -435,7 +435,7 @@
             deerGroup.userData.isFollowing = false; // Custom property
             return deerGroup;
         }
-        
+
         function createFriendDeer() {
             const friendsToCreate = [
                 { color: 0x8a2be2, platformIndex: 2 }, // Purple on platform 3
@@ -466,7 +466,7 @@
             groundMesh.receiveShadow = true;
             return groundMesh;
         }
-        
+
         function createTree(x, z) {
             const tree = new THREE.Group();
             const trunkGeo = new THREE.CylinderGeometry(0.3, 0.4, 4, 8);
@@ -520,7 +520,7 @@
                 jumpsLeft--;
             }
         }
-        
+
         function createFartCloud() {
             const currentTime = clock.getElapsedTime();
             if (currentTime - lastFartTime < 1.0) return; // 1 second cooldown
@@ -572,7 +572,7 @@
                 }
             }
         }
-        
+
         function updateGamepad(delta) {
             if (!gamepad) return;
 
@@ -583,15 +583,34 @@
             const leftStickX = currentGamepad.axes[0];
             const leftStickY = currentGamepad.axes[1];
 
-            if (Math.abs(leftStickX) > deadzone) {
-                deer.rotation.y -= leftStickX * deerTurnSpeed * delta * 1.5;
-            }
-            if (Math.abs(leftStickY) > deadzone) {
-                const forward = new THREE.Vector3(0, 0, -1);
-                forward.applyQuaternion(deer.quaternion);
-                deer.position.add(forward.multiplyScalar(-leftStickY * deerSpeed * delta));
+            if (Math.abs(leftStickX) > deadzone || Math.abs(leftStickY) > deadzone) {
+                 // Get camera direction projected on the ground plane
+                const cameraForward = new THREE.Vector3();
+                camera.getWorldDirection(cameraForward);
+                cameraForward.y = 0;
+                cameraForward.normalize();
+
+                const cameraRight = new THREE.Vector3().crossVectors(camera.up, cameraForward).negate();
+
+                // Calculate movement direction based on joystick and camera
+                const moveDirection = cameraForward.multiplyScalar(leftStickY).add(cameraRight.multiplyScalar(leftStickX));
+                moveDirection.normalize();
+                
+                // Move the deer
+                deer.position.add(moveDirection.clone().multiplyScalar(deerSpeed * delta));
                 isWalking = true;
+                
+                // Rotate the deer to face the movement direction
+                const targetAngle = Math.atan2(moveDirection.x, moveDirection.z);
+
+                // Smoothly interpolate towards the target angle
+                let angleDifference = targetAngle - deer.rotation.y;
+                while (angleDifference < -Math.PI) angleDifference += 2 * Math.PI;
+                while (angleDifference > Math.PI) angleDifference -= 2 * Math.PI;
+
+                deer.rotation.y += angleDifference * 10 * delta; // 10 is the turn speed
             }
+
 
             const rightStickX = currentGamepad.axes[2];
             const rightStickY = currentGamepad.axes[3];
@@ -603,7 +622,7 @@
                 cameraPitch -= rightStickY * gamepadTurnSpeed * delta;
                 cameraPitch = Math.max(0.1, Math.min(Math.PI / 2.5, cameraPitch));
             }
-            
+
             if (currentGamepad.buttons[0].pressed && gamepadCanJump) {
                 handleJump();
                 gamepadCanJump = false;
@@ -616,7 +635,7 @@
                 createFartCloud();
             }
         }
-        
+
         function updateTouchControls(delta) {
             const joystickDeadzone = 0.1;
             if (touchState.joystick.active && (Math.abs(touchState.joystick.deltaX) > joystickDeadzone || Math.abs(touchState.joystick.deltaY) > joystickDeadzone)) {
@@ -659,5 +678,194 @@
 
         function updateDeer(delta) {
             const oldPosition = deer.position.clone();
-// ... existing code ... -->
+            isWalking = false;
+
+            // Keyboard controls (tank style for simplicity, can be updated to camera-relative too)
+            if (keyboard['ArrowUp']) {
+                const forward = new THREE.Vector3(0, 0, -1);
+                forward.applyQuaternion(deer.quaternion);
+                deer.position.add(forward.multiplyScalar(deerSpeed * delta));
+                isWalking = true;
+            }
+             if (keyboard['ArrowDown']) {
+                const forward = new THREE.Vector3(0, 0, 1);
+                forward.applyQuaternion(deer.quaternion);
+                deer.position.add(forward.multiplyScalar(deerSpeed * delta));
+                isWalking = true;
+            }
+            if (keyboard['ArrowLeft']) {
+                deer.rotation.y += deerTurnSpeed * delta;
+            }
+            if (keyboard['ArrowRight']) {
+                deer.rotation.y -= deerTurnSpeed * delta;
+            }
+            if (keyboard['Space'] && canJump) {
+                handleJump();
+                canJump = false;
+            }
+            
+            // Collision with platforms
+            const deerCollider = new THREE.Sphere(deer.position.clone().add(new THREE.Vector3(0, 1.5, 0)), 1.2);
+            for (const obstacle of obstacles) {
+                const obstacleBox = new THREE.Box3().setFromObject(obstacle);
+                if (obstacleBox.intersectsSphere(deerCollider)) {
+                    const deerBottom = deer.position.y;
+                    const platformTop = obstacleBox.max.y;
+                    // This is a simple collision check that might need improvement
+                    // For now, it mostly prevents walking through platforms from the side
+                    if (deerBottom < platformTop - 0.1) {
+                         deer.position.copy(oldPosition);
+                         break;
+                    }
+                }
+            }
+
+            // Check for rescuing friends
+            friendDeer.forEach(friend => {
+                if (!friend.userData.isFollowing) {
+                    const dist = deer.position.distanceTo(friend.position);
+                    if (dist < friendDeerStopDistance) {
+                        friend.userData.isFollowing = true;
+                    }
+                }
+            });
+        }
+
+        function updateFriendDeer(delta) {
+            friendDeer.forEach(friend => {
+                if (friend.userData.isFollowing) {
+                    const distanceToPlayer = friend.position.distanceTo(deer.position);
+                    if (distanceToPlayer > friendDeerStopDistance + friendDeer.indexOf(friend)) { // Simple offset to prevent clumping
+                        const direction = new THREE.Vector3().subVectors(deer.position, friend.position).normalize();
+                        friend.position.add(direction.multiplyScalar(friendDeerFollowSpeed * delta));
+                        friend.lookAt(deer.position.x, friend.position.y, friend.position.z);
+                    }
+                }
+            });
+        }
+
+        function animateWalk(time, targetDeer) {
+            const angle = Math.sin(time * 10) * 0.4;
+            const angle2 = -Math.sin(time * 10) * 0.4;
+            
+            let isMoving = (targetDeer === deer && isWalking) ||
+                           (targetDeer.userData.isFollowing && targetDeer.position.distanceTo(deer.position) > friendDeerStopDistance + friendDeer.indexOf(targetDeer));
+
+            if (isMoving) {
+                targetDeer.legs[0].rotation.x = angle;
+                targetDeer.legs[1].rotation.x = angle2;
+                targetDeer.legs[2].rotation.x = angle2;
+                targetDeer.legs[3].rotation.x = angle;
+                targetDeer.body.position.y = 1.5 + Math.sin(time * 10) * 0.05;
+            } else {
+                targetDeer.legs.forEach(leg => { leg.rotation.x *= 0.8; });
+                targetDeer.body.position.y = 1.5 + (targetDeer.body.position.y - 1.5) * 0.9;
+            }
+        }
+
+        function updatePhysics(delta) {
+            // Player deer physics
+            if (!isGrounded) {
+                deerVelocityY -= gravity * delta;
+                deer.position.y += deerVelocityY * delta;
+            }
+            isGrounded = false;
+            let landedOnPlatform = false;
+            for (const platform of obstacles) {
+                const platformBox = new THREE.Box3().setFromObject(platform);
+                const onPlatformX = deer.position.x > platformBox.min.x && deer.position.x < platformBox.max.x;
+                const onPlatformZ = deer.position.z > platformBox.min.z && deer.position.z < platformBox.max.z;
+                if (onPlatformX && onPlatformZ) {
+                    const previousY = deer.position.y - (deerVelocityY * delta);
+                    if (deerVelocityY <= 0 && previousY >= platformBox.max.y && deer.position.y < platformBox.max.y) {
+                        deer.position.y = platformBox.max.y;
+                        deerVelocityY = 0;
+                        isGrounded = true;
+                        landedOnPlatform = true;
+                        jumpsLeft = 2;
+                        break;
+                    }
+                }
+            }
+            if (!landedOnPlatform && deer.position.y <= 0) {
+                deer.position.y = 0;
+                deerVelocityY = 0;
+                isGrounded = true;
+                jumpsLeft = 2;
+            }
+
+            // Friend deer physics (simple fall and land)
+            friendDeer.forEach(friend => {
+                friend.position.y -= gravity * delta * 0.5;
+                for (const platform of obstacles) {
+                    const platformBox = new THREE.Box3().setFromObject(platform);
+                    const onPlatformX = friend.position.x > platformBox.min.x && friend.position.x < platformBox.max.x;
+                    const onPlatformZ = friend.position.z > platformBox.min.z && friend.position.z < platformBox.max.z;
+                    if (onPlatformX && onPlatformZ && friend.position.y <= platformBox.max.y) {
+                        friend.position.y = platformBox.max.y;
+                        break;
+                    }
+                }
+                if (friend.position.y <= 0) {
+                    friend.position.y = 0;
+                }
+            });
+        }
+
+        function checkWinCondition() {
+            if (allFriendsRescued) return;
+
+            const allFollowing = friendDeer.every(friend => friend.userData.isFollowing);
+            if (allFollowing) {
+                allFriendsRescued = true;
+                document.getElementById('win-message').style.display = 'block';
+            }
+        }
+
+        function updateCamera() {
+            // The camera is always in orbit mode.
+            const cameraOffset = new THREE.Vector3(
+                Math.sin(cameraYaw) * cameraDistance,
+                Math.sin(cameraPitch) * cameraDistance,
+                Math.cos(cameraYaw) * cameraDistance
+            );
+            const cameraPosition = deer.position.clone().add(new THREE.Vector3(0, 1.5, 0)).add(cameraOffset);
+            camera.position.lerp(cameraPosition, 0.2);
+            camera.lookAt(deer.position.x, deer.position.y + 1.5, deer.position.z);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            const elapsedTime = clock.getElapsedTime();
+
+            isWalking = false;
+            updateGamepad(delta);
+            updateTouchControls(delta);
+            updateDeer(delta);
+            updatePhysics(delta);
+            updateFriendDeer(delta);
+            updateFartClouds(delta);
+
+            animateWalk(elapsedTime, deer);
+            friendDeer.forEach(friend => {
+                animateWalk(elapsedTime, friend);
+            });
+
+            updateCamera();
+            checkWinCondition();
+
+            renderer.render(scene, camera);
+        }
+
+        init();
+    </script>
+</body>
+</html>
 

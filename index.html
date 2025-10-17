@@ -655,9 +655,17 @@
             }
             if (keyboard['ArrowLeft']) {
                 deer.rotation.y += deerTurnSpeed * delta;
+                // When using keyboard to turn, we also turn the camera to keep it behind the deer,
+                // unless the camera is being actively controlled by another input.
+                if (!touchState.camera.active && !gamepad) {
+                    cameraYaw += deerTurnSpeed * delta;
+                }
             }
             if (keyboard['ArrowRight']) {
                 deer.rotation.y -= deerTurnSpeed * delta;
+                if (!touchState.camera.active && !gamepad) {
+                    cameraYaw -= deerTurnSpeed * delta;
+                }
             }
             if (keyboard['Space'] && canJump) {
                 handleJump();
@@ -780,26 +788,16 @@
         }
 
         function updateCamera() {
-            const isOrbiting = gamepad || touchState.camera.active;
-
-            if (!isOrbiting) {
-                const offset = new THREE.Vector3(0, 5, 10);
-                offset.applyQuaternion(deer.quaternion);
-                const cameraPosition = new THREE.Vector3().copy(deer.position).add(offset);
-                camera.position.lerp(cameraPosition, 0.1);
-                const lookAtTarget = new THREE.Vector3().copy(deer.position);
-                lookAtTarget.y = 1.5;
-                camera.lookAt(lookAtTarget);
-            } else {
-                const cameraOffset = new THREE.Vector3(
-                    Math.sin(cameraYaw) * cameraDistance,
-                    Math.sin(cameraPitch) * cameraDistance,
-                    Math.cos(cameraYaw) * cameraDistance
-                );
-                const cameraPosition = deer.position.clone().add(new THREE.Vector3(0, 1.5, 0)).add(cameraOffset);
-                camera.position.lerp(cameraPosition, 0.2);
-                camera.lookAt(deer.position.x, deer.position.y + 1.5, deer.position.z);
-            }
+            // The camera is always in orbit mode now.
+            // Different controls (gamepad, touch, keyboard) will update the cameraYaw and cameraPitch.
+            const cameraOffset = new THREE.Vector3(
+                Math.sin(cameraYaw) * cameraDistance,
+                Math.sin(cameraPitch) * cameraDistance,
+                Math.cos(cameraYaw) * cameraDistance
+            );
+            const cameraPosition = deer.position.clone().add(new THREE.Vector3(0, 1.5, 0)).add(cameraOffset);
+            camera.position.lerp(cameraPosition, 0.2);
+            camera.lookAt(deer.position.x, deer.position.y + 1.5, deer.position.z);
         }
 
         function onWindowResize() {
